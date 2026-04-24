@@ -13,4 +13,8 @@ export class TicketService {
     this.tickets.push(ticket);
     return ticket;
   }
+
+  list(): Ticket[] {
+    return [...this.tickets];
+  }
 }

@@ -26,3 +26,29 @@ describe('POST /tickets', () => {
     expect(second.body.number).toBe(2);
   });
 });
+
+describe('GET /tickets', () => {
+  let app: Express;
+
+  beforeEach(() => {
+    app = createApp();
+  });
+
+  it('returns an empty array when no tickets exist', async () => {
+    const response = await request(app).get('/tickets');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it('returns all generated tickets', async () => {
+    await request(app).post('/tickets');
+    await request(app).post('/tickets');
+
+    const response = await request(app).get('/tickets');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body.map((t: { number: number }) => t.number)).toEqual([1, 2]);
+  });
+});

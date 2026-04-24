@@ -7,6 +7,7 @@ export function createTicketRouter(service: TicketService = new TicketService())
   const controller = new TicketController(service);
 
   router.post('/', controller.create);
+  router.get('/', controller.list);
 
   return router;
 }

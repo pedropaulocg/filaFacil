@@ -8,4 +8,8 @@ export class TicketController {
     const ticket = this.service.generate();
     res.status(201).json(ticket);
   };
+
+  list = (_req: Request, res: Response): void => {
+    res.status(200).json(this.service.list());
+  };
 }
