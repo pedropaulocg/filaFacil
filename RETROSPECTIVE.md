@@ -1,4 +1,4 @@
-# Retrospectiva da Sprint 0
+# Retrospectiva da Sprint 1
 
 Essa foi a sprint de fundação. O objetivo era sair do zero e ter alguma coisa de concreto rodando: proposta aprovada, Kanban montado no GitHub Projects e pelo menos o esqueleto do backend funcionando. No geral saí satisfeito com o que entreguei, mas tem algumas coisas que quero registrar aqui para não repetir nas próximas sprints.
 
@@ -19,8 +19,6 @@ O Kanban com WIP limits ajudou a não me espalhar. Ter o limite de três na colu
 ## O que pode melhorar
 
 Comecei a pensar no banco de dados tarde demais. Quando cheguei na issue de criar a estrutura do banco, percebi que tinha uma dúvida grande que deveria ter aparecido bem antes: se os tickets são descartáveis ou se precisam ser persistidos. Acabei resolvendo na hora, mas se eu tivesse levantado essa pergunta no começo da sprint, teria entrado na implementação com muito mais clareza.
-
-Meus commits ficaram grandes demais. Tem um commit só que carrega toda a configuração inicial, os três endpoints e os testes, tudo junto. Se eu tivesse quebrado em partes menores, seria bem mais fácil de revisar e de voltar atrás caso alguma coisa tivesse quebrado. É um vício que eu preciso cortar, mesmo trabalhando sozinho.
 
 As dailies também não aconteceram com a regularidade que deveriam. Como estou desenvolvendo sozinho, é fácil achar que daily é ritual de time e que não serve para projeto individual. Mas na prática acaba que eu perco o momento fixo de parar, olhar o que estou fazendo e ver o que está travado. Preciso encarar isso como compromisso comigo mesmo.
 
