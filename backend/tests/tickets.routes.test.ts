@@ -41,7 +41,7 @@ describe('GET /tickets', () => {
     expect(response.body).toEqual([]);
   });
 
-  it('returns all generated tickets', async () => {
+  it('returns all generated tickets ordered by number', async () => {
     await request(app).post('/tickets');
     await request(app).post('/tickets');
 
