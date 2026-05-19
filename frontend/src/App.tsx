@@ -1,88 +1,37 @@
-import { useEffect, useState } from 'react';
-import { generateTicket, listTickets } from './api';
-import type { Ticket } from './types';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthContext';
+import { ProtectedRoute } from './auth/ProtectedRoute';
+import { Layout } from './components/Layout';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { CriarSenhaPage } from './pages/CriarSenhaPage';
+import { FilaPage } from './pages/FilaPage';
+import { ChamarSenhaPage } from './pages/ChamarSenhaPage';
 import './App.css';
 
 function App() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [lastTicket, setLastTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function refreshQueue() {
-    try {
-      setTickets(await listTickets());
-      setError(null);
-    } catch {
-      setError('Não foi possível carregar a fila. O servidor está rodando?');
-    }
-  }
-
-  useEffect(() => {
-    void refreshQueue();
-  }, []);
-
-  async function handleGenerate() {
-    setLoading(true);
-    try {
-      const ticket = await generateTicket();
-      setLastTicket(ticket);
-      await refreshQueue();
-    } catch {
-      setError('Não foi possível gerar a senha.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <main className="app">
-      <header>
-        <h1>FilaFácil</h1>
-        <p className="subtitle">Gerenciamento simples de filas</p>
-      </header>
-
-      <button
-        type="button"
-        className="generate"
-        onClick={() => void handleGenerate()}
-        disabled={loading}
-      >
-        {loading ? 'Gerando...' : 'Gerar nova senha'}
-      </button>
-
-      {lastTicket && (
-        <section className="highlight">
-          <span className="highlight-label">Senha gerada</span>
-          <span className="highlight-number">{lastTicket.number}</span>
-        </section>
-      )}
-
-      {error && <p className="error">{error}</p>}
-
-      <section className="queue">
-        <div className="queue-header">
-          <h2>Fila atual</h2>
-          <button type="button" className="refresh" onClick={() => void refreshQueue()}>
-            Atualizar
-          </button>
-        </div>
-        {tickets.length === 0 ? (
-          <p className="empty">Nenhuma senha na fila.</p>
-        ) : (
-          <ul>
-            {tickets.map((ticket) => (
-              <li key={ticket.number}>
-                <span className="ticket-number">Senha {ticket.number}</span>
-                <span className="ticket-time">
-                  {new Date(ticket.createdAt).toLocaleTimeString('pt-BR')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/cadastro" element={<RegisterPage />} />
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/" element={<Navigate to="/criar" replace />} />
+            <Route path="/criar" element={<CriarSenhaPage />} />
+            <Route path="/fila" element={<FilaPage />} />
+            <Route path="/chamar" element={<ChamarSenhaPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
