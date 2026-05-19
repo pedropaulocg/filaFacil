@@ -20,6 +20,7 @@ services:
     environment:
       PORT: 3000
       MONGODB_URI: mongodb://mongo:27017/filafacil
+      JWT_SECRET: dev-secret-change-me
     depends_on:
       mongo:
         condition: service_healthy
