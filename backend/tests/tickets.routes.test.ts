@@ -3,52 +3,65 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../src/app.js';
 
-describe('POST /tickets', () => {
+describe('tickets API', () => {
   let app: Express;
+  let token: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     app = createApp();
+    const registered = await request(app)
+      .post('/auth/register')
+      .send({ name: 'Operador', email: 'op@example.com', password: 'senha123' });
+    token = registered.body.token as string;
   });
 
-  it('creates a ticket and returns 201 with number and createdAt', async () => {
-    const response = await request(app).post('/tickets');
+  function authed(method: 'get' | 'post', path: string) {
+    return request(app)[method](path).set('Authorization', `Bearer ${token}`);
+  }
+
+  it('rejects requests without a token', async () => {
+    const response = await request(app).get('/tickets');
+    expect(response.status).toBe(401);
+  });
+
+  it('creates a normal ticket with a NOR_ code', async () => {
+    const response = await authed('post', '/tickets').send({ kind: 'normal' });
 
     expect(response.status).toBe(201);
-    expect(response.body).toMatchObject({ number: 1 });
-    expect(typeof response.body.createdAt).toBe('string');
+    expect(response.body.code).toBe('NOR_0001');
   });
 
-  it('assigns incrementing numbers to successive tickets', async () => {
-    const first = await request(app).post('/tickets');
-    const second = await request(app).post('/tickets');
+  it('creates a priority ticket with a PRE_ code', async () => {
+    const response = await authed('post', '/tickets').send({ kind: 'priority' });
 
-    expect(first.body.number).toBe(1);
-    expect(second.body.number).toBe(2);
-  });
-});
-
-describe('GET /tickets', () => {
-  let app: Express;
-
-  beforeEach(() => {
-    app = createApp();
+    expect(response.status).toBe(201);
+    expect(response.body.code).toBe('PRE_001');
   });
 
-  it('returns an empty array when no tickets exist', async () => {
-    const response = await request(app).get('/tickets');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual([]);
+  it('rejects an invalid kind with 400', async () => {
+    const response = await authed('post', '/tickets').send({ kind: 'vip' });
+    expect(response.status).toBe(400);
   });
 
-  it('returns all generated tickets ordered by number', async () => {
-    await request(app).post('/tickets');
-    await request(app).post('/tickets');
+  it('lists generated tickets', async () => {
+    await authed('post', '/tickets').send({ kind: 'normal' });
+    await authed('post', '/tickets').send({ kind: 'priority' });
 
-    const response = await request(app).get('/tickets');
-
+    const response = await authed('get', '/tickets');
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(2);
-    expect(response.body.map((t: { number: number }) => t.number)).toEqual([1, 2]);
+  });
+
+  it('calls the next ticket', async () => {
+    await authed('post', '/tickets').send({ kind: 'normal' });
+
+    const response = await authed('post', '/tickets/call');
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('called');
+  });
+
+  it('returns 404 when calling with an empty queue', async () => {
+    const response = await authed('post', '/tickets/call');
+    expect(response.status).toBe(404);
   });
 });

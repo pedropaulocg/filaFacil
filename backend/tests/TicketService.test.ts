@@ -1,33 +1,63 @@
 import { describe, it, expect } from 'vitest';
+import mongoose from 'mongoose';
 import { TicketService } from '../src/services/TicketService.js';
 
 describe('TicketService', () => {
   const service = new TicketService();
+  const operatorId = new mongoose.Types.ObjectId().toString();
 
-  it('starts with an empty queue', async () => {
-    expect(await service.list()).toEqual([]);
+  it('generates a normal ticket with a NOR_ code', async () => {
+    const ticket = await service.generate('normal');
+
+    expect(ticket.kind).toBe('normal');
+    expect(ticket.status).toBe('waiting');
+    expect(ticket.code).toBe('NOR_0001');
   });
 
-  it('generates tickets with auto-incremented numbers starting at 1', async () => {
-    const first = await service.generate();
-    const second = await service.generate();
+  it('generates a priority ticket with a separate PRE_ sequence', async () => {
+    await service.generate('normal');
+    const priority = await service.generate('priority');
 
-    expect(first.number).toBe(1);
-    expect(second.number).toBe(2);
+    expect(priority.code).toBe('PRE_001');
   });
 
-  it('lists tickets ordered by number', async () => {
-    await service.generate();
-    await service.generate();
-    await service.generate();
-
-    const numbers = (await service.list()).map((ticket) => ticket.number);
-    expect(numbers).toEqual([1, 2, 3]);
+  it('throws when calling next with an empty queue', async () => {
+    await expect(service.callNext(operatorId)).rejects.toThrow();
   });
 
-  it('includes an ISO createdAt timestamp', async () => {
-    const ticket = await service.generate();
+  it('marks the called ticket with status and calledAt', async () => {
+    await service.generate('normal');
+    const called = await service.callNext(operatorId);
 
-    expect(ticket.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(called.status).toBe('called');
+    expect(called.calledAt).not.toBeNull();
+  });
+
+  it('calls priority before normal when both are waiting', async () => {
+    await service.generate('normal');
+    await service.generate('priority');
+
+    expect((await service.callNext(operatorId)).kind).toBe('priority');
+  });
+
+  it('follows a 2 priority : 1 normal ratio', async () => {
+    for (let i = 0; i < 6; i += 1) {
+      await service.generate('priority');
+      await service.generate('normal');
+    }
+
+    const kinds: string[] = [];
+    for (let i = 0; i < 6; i += 1) {
+      kinds.push((await service.callNext(operatorId)).kind);
+    }
+
+    expect(kinds).toEqual([
+      'priority',
+      'priority',
+      'normal',
+      'priority',
+      'priority',
+      'normal',
+    ]);
   });
 });
