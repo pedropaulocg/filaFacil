@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { callNextTicket, listTickets } from '../api/tickets';
+import { callNextTicket, finishTicket, listTickets } from '../api/tickets';
 import type { Ticket } from '../types';
 
 export function ChamarSenhaPage() {
@@ -34,6 +34,23 @@ export function ChamarSenhaPage() {
     }
   }
 
+  async function handleFinish(): Promise<void> {
+    if (!lastCalled) {
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await finishTicket(lastCalled.id);
+      setLastCalled(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao finalizar atendimento');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const waiting = tickets.filter((ticket) => ticket.status === 'waiting');
   const waitingPriority = waiting.filter((ticket) => ticket.kind === 'priority').length;
   const waitingNormal = waiting.length - waitingPriority;
@@ -52,10 +69,22 @@ export function ChamarSenhaPage() {
       </button>
 
       {lastCalled && (
-        <div className={`highlight ${lastCalled.kind === 'priority' ? 'priority' : ''}`}>
-          <span className="highlight-label">Senha chamada</span>
-          <span className="highlight-code">{lastCalled.code}</span>
-        </div>
+        <>
+          <div className={`highlight ${lastCalled.kind === 'priority' ? 'priority' : ''}`}>
+            <span className="highlight-label">Senha chamada</span>
+            <span className="highlight-code">{lastCalled.code}</span>
+          </div>
+          <div className="action-buttons">
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void handleFinish()}
+              disabled={loading}
+            >
+              Finalizar atendimento
+            </button>
+          </div>
+        </>
       )}
 
       {error && <p className="error">{error}</p>}

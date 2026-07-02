@@ -40,6 +40,28 @@ describe('TicketService', () => {
     expect((await service.callNext(operatorId)).kind).toBe('priority');
   });
 
+  it('finishes a called ticket with status done and finishedAt', async () => {
+    await service.generate('normal');
+    const called = await service.callNext(operatorId);
+
+    const finished = await service.finish(called.id);
+
+    expect(finished.status).toBe('done');
+    expect(finished.finishedAt).not.toBeNull();
+  });
+
+  it('rejects finishing a ticket that was not called', async () => {
+    const waiting = await service.generate('normal');
+
+    await expect(service.finish(waiting.id)).rejects.toThrow(
+      'Somente senhas chamadas podem ser finalizadas',
+    );
+  });
+
+  it('rejects finishing an unknown ticket', async () => {
+    await expect(service.finish('nao-existe')).rejects.toThrow('Senha não encontrada');
+  });
+
   it('follows a 2 priority : 1 normal ratio', async () => {
     for (let i = 0; i < 6; i += 1) {
       await service.generate('priority');

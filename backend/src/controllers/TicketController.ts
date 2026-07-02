@@ -26,4 +26,9 @@ export class TicketController {
     const ticket = await this.service.callNext(req.userId);
     res.status(200).json(ticket);
   };
+
+  finish = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+    const ticket = await this.service.finish(req.params.id);
+    res.status(200).json(ticket);
+  };
 }

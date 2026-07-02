@@ -15,3 +15,7 @@ export function listTickets(): Promise<Ticket[]> {
 export function callNextTicket(): Promise<Ticket> {
   return apiFetch('/tickets/call', { method: 'POST' });
 }
+
+export function finishTicket(id: string): Promise<Ticket> {
+  return apiFetch(`/tickets/${id}/finish`, { method: 'POST' });
+}

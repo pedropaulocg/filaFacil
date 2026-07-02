@@ -1,3 +1,4 @@
+import { isValidObjectId } from 'mongoose';
 import { TicketModel, type TicketHydrated } from '../models/Ticket.js';
 import { nextSequence } from '../models/Counter.js';
 import { HttpError } from '../errors/HttpError.js';
@@ -31,6 +32,25 @@ export class TicketService {
     return this.toTicket(doc);
   }
 
+  async finish(id: string): Promise<Ticket> {
+    const doc = await this.findByIdOrFail(id);
+    if (doc.status !== 'called') {
+      throw new HttpError(409, 'Somente senhas chamadas podem ser finalizadas');
+    }
+    doc.status = 'done';
+    doc.finishedAt = new Date();
+    await doc.save();
+    return this.toTicket(doc);
+  }
+
+  private async findByIdOrFail(id: string): Promise<TicketHydrated> {
+    const doc = isValidObjectId(id) ? await TicketModel.findById(id) : null;
+    if (!doc) {
+      throw new HttpError(404, 'Senha não encontrada');
+    }
+    return doc;
+  }
+
   private async pickNextKind(): Promise<TicketKind | null> {
     const hasPriority = await TicketModel.exists({ kind: 'priority', status: 'waiting' });
     const hasNormal = await TicketModel.exists({ kind: 'normal', status: 'waiting' });
@@ -56,6 +76,7 @@ export class TicketService {
       status: doc.status,
       createdAt: doc.createdAt.toISOString(),
       calledAt: doc.calledAt ? doc.calledAt.toISOString() : null,
+      finishedAt: doc.finishedAt ? doc.finishedAt.toISOString() : null,
     };
   }
 

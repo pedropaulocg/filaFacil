@@ -8,6 +8,7 @@ export interface TicketDocument {
   createdAt: Date;
   calledAt: Date | null;
   calledBy: Types.ObjectId | null;
+  finishedAt: Date | null;
 }
 
 const ticketSchema = new Schema<TicketDocument>(
@@ -16,12 +17,13 @@ const ticketSchema = new Schema<TicketDocument>(
     kind: { type: String, enum: ['normal', 'priority'], required: true },
     status: {
       type: String,
-      enum: ['waiting', 'called'],
+      enum: ['waiting', 'called', 'done'],
       required: true,
       default: 'waiting',
     },
     calledAt: { type: Date, default: null },
     calledBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    finishedAt: { type: Date, default: null },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );

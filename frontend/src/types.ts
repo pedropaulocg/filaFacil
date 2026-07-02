@@ -1,5 +1,5 @@
 export type TicketKind = 'normal' | 'priority';
-export type TicketStatus = 'waiting' | 'called';
+export type TicketStatus = 'waiting' | 'called' | 'done';
 
 export interface Ticket {
   id: string;
@@ -9,6 +9,7 @@ export interface Ticket {
   status: TicketStatus;
   createdAt: string;
   calledAt: string | null;
+  finishedAt: string | null;
 }
 
 export interface AuthUser {

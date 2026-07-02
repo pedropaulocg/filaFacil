@@ -64,4 +64,27 @@ describe('tickets API', () => {
     const response = await authed('post', '/tickets/call');
     expect(response.status).toBe(404);
   });
+
+  it('finishes a called ticket', async () => {
+    await authed('post', '/tickets').send({ kind: 'normal' });
+    const called = await authed('post', '/tickets/call');
+
+    const response = await authed('post', `/tickets/${called.body.id}/finish`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('done');
+    expect(response.body.finishedAt).not.toBeNull();
+  });
+
+  it('returns 409 when finishing a waiting ticket', async () => {
+    const created = await authed('post', '/tickets').send({ kind: 'normal' });
+
+    const response = await authed('post', `/tickets/${created.body.id}/finish`);
+    expect(response.status).toBe(409);
+  });
+
+  it('returns 404 when finishing an unknown ticket', async () => {
+    const response = await authed('post', '/tickets/nao-existe/finish');
+    expect(response.status).toBe(404);
+  });
 });
