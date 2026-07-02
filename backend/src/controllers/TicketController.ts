@@ -31,4 +31,17 @@ export class TicketController {
     const ticket = await this.service.finish(req.params.id);
     res.status(200).json(ticket);
   };
+
+  markAbsent = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+    const ticket = await this.service.markAbsent(req.params.id);
+    res.status(200).json(ticket);
+  };
+
+  recall = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
+    if (!req.userId) {
+      throw new HttpError(401, 'Não autenticado');
+    }
+    const ticket = await this.service.recall(req.params.id, req.userId);
+    res.status(200).json(ticket);
+  };
 }

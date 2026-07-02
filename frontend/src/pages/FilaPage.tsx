@@ -31,11 +31,12 @@ export function FilaPage() {
     };
   }, []);
 
-  const called = tickets
-    .filter((ticket) => ticket.status === 'called')
+  const history = tickets
+    .filter((ticket) => ticket.calledAt !== null)
     .sort((a, b) => (b.calledAt ?? '').localeCompare(a.calledAt ?? ''));
-  const current = called[0] ?? null;
-  const past = called.slice(1);
+  const current = history.find((ticket) => ticket.status === 'called') ?? null;
+  const past = history.filter((ticket) => ticket !== current);
+  const waiting = tickets.filter((ticket) => ticket.status === 'waiting');
 
   return (
     <section className="page">
@@ -45,6 +46,22 @@ export function FilaPage() {
         <span className="highlight-label">Senha atual</span>
         <span className="highlight-code">{current ? current.code : '---'}</span>
       </div>
+
+      <h2>Aguardando</h2>
+      {waiting.length === 0 ? (
+        <p className="muted">Nenhuma senha aguardando.</p>
+      ) : (
+        <ul className="ticket-list">
+          {waiting.map((ticket) => (
+            <li key={ticket.id}>
+              <span className="ticket-code">{ticket.code}</span>
+              <span className="muted">
+                {ticket.position != null ? `${ticket.position}ª posição` : ''}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <h2>Senhas anteriores</h2>
       {past.length === 0 ? (

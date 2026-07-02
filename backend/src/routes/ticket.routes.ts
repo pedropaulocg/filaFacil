@@ -10,6 +10,8 @@ export function createTicketRouter(service: TicketService = new TicketService())
   router.get('/', controller.list);
   router.post('/call', controller.call);
   router.post('/:id/finish', controller.finish);
+  router.post('/:id/absent', controller.markAbsent);
+  router.post('/:id/recall', controller.recall);
 
   return router;
 }

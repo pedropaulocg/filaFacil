@@ -29,6 +29,7 @@ describe('tickets API', () => {
 
     expect(response.status).toBe(201);
     expect(response.body.code).toBe('NOR_0001');
+    expect(response.body.position).toBe(1);
   });
 
   it('creates a priority ticket with a PRE_ code', async () => {
@@ -86,5 +87,25 @@ describe('tickets API', () => {
   it('returns 404 when finishing an unknown ticket', async () => {
     const response = await authed('post', '/tickets/nao-existe/finish');
     expect(response.status).toBe(404);
+  });
+
+  it('marks a called ticket as absent and recalls it', async () => {
+    await authed('post', '/tickets').send({ kind: 'normal' });
+    const called = await authed('post', '/tickets/call');
+
+    const absent = await authed('post', `/tickets/${called.body.id}/absent`);
+    expect(absent.status).toBe(200);
+    expect(absent.body.status).toBe('absent');
+
+    const recalled = await authed('post', `/tickets/${called.body.id}/recall`);
+    expect(recalled.status).toBe(200);
+    expect(recalled.body.status).toBe('called');
+  });
+
+  it('returns 409 when marking a waiting ticket as absent', async () => {
+    const created = await authed('post', '/tickets').send({ kind: 'normal' });
+
+    const response = await authed('post', `/tickets/${created.body.id}/absent`);
+    expect(response.status).toBe(409);
   });
 });

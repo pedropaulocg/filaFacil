@@ -19,3 +19,11 @@ export function callNextTicket(): Promise<Ticket> {
 export function finishTicket(id: string): Promise<Ticket> {
   return apiFetch(`/tickets/${id}/finish`, { method: 'POST' });
 }
+
+export function markTicketAbsent(id: string): Promise<Ticket> {
+  return apiFetch(`/tickets/${id}/absent`, { method: 'POST' });
+}
+
+export function recallTicket(id: string): Promise<Ticket> {
+  return apiFetch(`/tickets/${id}/recall`, { method: 'POST' });
+}

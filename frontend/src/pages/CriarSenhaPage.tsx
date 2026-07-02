@@ -45,6 +45,12 @@ export function CriarSenhaPage() {
         <div className={`highlight ${lastTicket.kind === 'priority' ? 'priority' : ''}`}>
           <span className="highlight-label">Senha gerada</span>
           <span className="highlight-code">{lastTicket.code}</span>
+          {lastTicket.position != null && (
+            <span className="highlight-position">
+              {lastTicket.position}ª posição na fila{' '}
+              {lastTicket.kind === 'priority' ? 'preferencial' : 'normal'}
+            </span>
+          )}
         </div>
       )}
 
